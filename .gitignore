@@ -1,0 +1,6 @@
+# 本地备份、缓存、字体（字体有授权限制，不随仓库分发）
+备份/
+__pycache__/
+*.pyc
+assets/fonts/
+.DS_Store

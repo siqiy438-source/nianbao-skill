@@ -1,0 +1,224 @@
+/* 年报精读 · kami 版式
+ * 规矩来自 kami（紙）：羊皮纸底、只有一种墨蓝点缀、全篇一种衬线字体（仓耳今楷）、字重只用 400/500、
+ * 灰色一律偏暖、标题左侧 2.5pt 墨蓝竖线、强调数字用墨蓝不加粗、不用斜体、不用硬阴影。
+ * 页面底色和页脚由 build.py 在出 PDF 后用 PyMuPDF 铺上（Chrome 打印不画页边距）。
+ * 字体 @font-face 由 build.py 注入（找到仓耳今楷就用，找不到退到思源宋体 / 宋体）。 */
+:root {
+  --parchment: #f5f4ed;
+  --ivory: #faf9f5;
+  --sand: #e8e6dc;
+  --near-black: #141413;
+  --dark-warm: #3d3d3a;
+  --olive: #504e49;
+  --stone: #6b6a64;
+  --brand: #1B365D;
+  --border: #e8e6dc;
+  --border-soft: #e5e3d8;
+  --tag-bg: #E4ECF5;
+  --tint: #EEF2F7;
+  --up: #a9564b;     /* 涨：豆沙红 */
+  --down: #44785a;   /* 跌：松绿 */
+  --serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: transparent; }
+body {
+  font-family: var(--serif);
+  color: var(--near-black);
+  font-size: 10pt;
+  line-height: 1.55;
+  letter-spacing: 0.2pt;
+  font-weight: 400;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  text-align: left;
+  widows: 2;
+  orphans: 2;
+}
+p { margin: 0 0 8pt; text-align: justify; }
+b, strong { font-weight: 500; color: var(--near-black); }
+.num { font-variant-numeric: tabular-nums; }
+/* 涨跌按 A 股习惯红涨绿跌，但用偏灰的豆沙红、松绿，跟羊皮纸和墨蓝搭，不刺眼 */
+.up { color: var(--up); font-weight: 500; }
+.down { color: var(--down); font-weight: 500; }
+.flat { color: var(--stone); }
+.hl { color: var(--brand); font-weight: 500; }
+.src { color: var(--stone); font-size: 8pt; font-weight: 400; white-space: nowrap; letter-spacing: 0.1pt; }
+/* 数字和单位不拆开（「1.57 倍」不会把「倍」甩到下一行）；标题、结论换行尽量匀称 */
+.nb { white-space: nowrap; }
+/* 标题类：只在标点、空格处换行（不把「增量」拆成「增|量」），行长尽量匀称；实在太长才硬断 */
+.ch-title, .cover .head, .qa-q, .fig-title, .callout .t, .flag .ft, .watch .w .wt, h3.sub {
+  text-wrap: balance; word-break: keep-all; overflow-wrap: anywhere;
+}
+/* 正文类：照常逐字换行，只避免最后一行孤零零一两个字 */
+p, .ch-lead, .cover .headsub, .qa-a, .flag .fx, .flag .fq, .tip, .callout .x, .kpi .note, .gl .gd, .verdict .vbasis { text-wrap: pretty; }
+
+/* ---------- 章节：连续排，章与章之间留大块空白，标题靠左侧墨蓝竖线立住 ---------- */
+.chapter { margin-top: 34pt; }
+.chapter.first { margin-top: 0; }
+.chapter.newpage { break-before: page; margin-top: 0; }
+.summary { break-after: page; }
+.ch-head { margin: 0 0 12pt; break-inside: avoid; break-after: avoid; }
+.ch-kicker { display: flex; align-items: baseline; gap: 8pt; font-size: 9.5pt; color: var(--brand); letter-spacing: 1pt; margin-bottom: 6pt; }
+.ch-kicker .ch-num { font-weight: 500; }
+.ch-kicker span + span { color: var(--stone); letter-spacing: 0.4pt; }
+.ch-title {
+  font-size: 22pt; line-height: 1.2; font-weight: 500; color: var(--near-black);
+  margin: 0 0 10pt; padding-left: 8pt; border-left: 2.5pt solid var(--brand); border-radius: 1.5pt;
+  letter-spacing: 0.4pt; text-align: left;
+}
+.ch-lead { font-size: 11.5pt; line-height: 1.6; color: var(--dark-warm); margin: 0 0 14pt; text-align: left; }
+.ch-lead .hl { color: var(--brand); }
+
+h3.sub { font-size: 13.5pt; font-weight: 500; color: var(--near-black); line-height: 1.3; margin: 20pt 0 8pt; display: flex; align-items: baseline; gap: 8pt; break-after: avoid; letter-spacing: 0.3pt; }
+
+/* ---------- 数字行（kami metrics）：不套卡片，墨蓝大数字 + 暖灰小字，上下点线 ---------- */
+.kpis { display: grid; gap: 0; margin: 2pt 0 16pt; padding: 8pt 0 9pt; border-top: 0.3pt dotted #cfcdc4; border-bottom: 0.3pt dotted #cfcdc4; break-inside: avoid; }
+.kpis.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.kpis.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kpis.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.kpis { row-gap: 10pt; }
+.kpi { padding: 2pt 10pt 2pt 12pt; display: flex; flex-direction: column; border-left: 0.5pt solid var(--border); }
+/* 每行第一个不要竖线和左边距（卡片排成两行时也对得齐） */
+.kpis.c2 .kpi:nth-child(2n+1), .kpis.c3 .kpi:nth-child(3n+1), .kpis.c4 .kpi:nth-child(4n+1) { border-left: none; padding-left: 0; }
+.kpi .label { font-size: 9pt; color: var(--olive); line-height: 1.35; }
+.kpi .value { font-size: 20pt; font-weight: 500; color: var(--brand); line-height: 1.15; margin-top: 3pt; letter-spacing: -0.2pt; white-space: nowrap; }
+.kpi .value .unit { font-size: 9.5pt; font-weight: 400; color: var(--olive); margin-left: 2pt; letter-spacing: 0.2pt; }
+.kpi .delta { font-size: 9pt; line-height: 1.4; margin-top: 2pt; color: var(--dark-warm); }
+.kpi .note { font-size: 8.5pt; color: var(--stone); line-height: 1.45; margin-top: 3pt; }
+.kpi .note .src { margin-left: 3pt; }
+
+/* ---------- 图 ---------- */
+.fig { break-inside: avoid; margin: 0 0 16pt; }
+.fig .fig-title { font-size: 10.5pt; font-weight: 500; color: var(--near-black); line-height: 1.4; text-align: left; }
+.fig .fig-no { color: var(--brand); font-weight: 500; margin-right: 6pt; letter-spacing: 0.4pt; }
+.fig .fig-sub { font-size: 8.5pt; color: var(--stone); line-height: 1.4; margin: 1pt 0 2pt; }
+.fig .chart { width: 100%; overflow: hidden; }
+.fig .fig-foot { display: flex; justify-content: space-between; gap: 10pt; font-size: 8.5pt; color: var(--stone); line-height: 1.45; margin-top: 3pt; text-align: left; }
+.fig .fig-foot span:last-child { white-space: nowrap; }
+.cols2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20pt; break-inside: avoid; margin-bottom: 16pt; }
+.cols2 > .fig, .cols2 > .block, .cols2 > .kpis { margin-bottom: 0; }
+
+/* ---------- 表格（kami-table） ---------- */
+table.tbl { width: 100%; border-collapse: collapse; font-size: 9.3pt; line-height: 1.5; margin: 2pt 0 4pt; }
+table.tbl tr { break-inside: avoid; }
+table.tbl th { text-align: left; font-weight: 500; color: var(--dark-warm); padding: 5pt 7pt; border-bottom: 1pt solid var(--border); background: transparent; }
+table.tbl td { padding: 5pt 7pt; border-bottom: 0.3pt solid var(--border-soft); vertical-align: top; text-align: left; color: var(--near-black); }
+table.tbl td.r, table.tbl th.r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.tbl td.c, table.tbl th.c { text-align: center; }
+table.tbl td:first-child { font-weight: 500; }
+table.tbl tr.em td { background: var(--ivory); border-top: 1pt solid var(--brand); }
+table.tbl.nowrap1 td:first-child, table.tbl.nowrap1 th:first-child { white-space: nowrap; }
+.tbl-wrap { margin: 0 0 16pt; }
+.tbl-foot { display: flex; justify-content: space-between; gap: 10pt; font-size: 8.5pt; color: var(--stone); }
+
+/* ---------- 年报原话 → 说人话 ---------- */
+.quote { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18pt; margin: 2pt 0 16pt; break-inside: avoid; }
+.quote .orig { border-left: 2pt solid var(--brand); padding: 2pt 0 2pt 12pt; color: var(--olive); font-size: 9.6pt; line-height: 1.6; }
+.quote .plain { background: var(--ivory); border: 0.5pt solid var(--border); border-radius: 6pt; padding: 9pt 12pt; color: var(--near-black); font-size: 10pt; line-height: 1.6; }
+.quote .tag { display: block; font-size: 8.5pt; letter-spacing: 0.8pt; margin-bottom: 3pt; }
+.quote .orig .tag { color: var(--stone); }
+.quote .plain .tag { color: var(--brand); }
+
+/* ---------- 刘总读法（kami takeaway） ---------- */
+.tip { background: var(--ivory); border-radius: 4pt; padding: 9pt 13pt; margin: 0 0 16pt; font-size: 9.6pt; line-height: 1.6; color: var(--dark-warm); break-inside: avoid; }
+.tip .tag { display: block; color: var(--brand); font-size: 8.5pt; letter-spacing: 0.8pt; margin-bottom: 2pt; }
+
+/* ---------- 重点分析（kami callout） ---------- */
+.callout { background: var(--ivory); border-left: 2pt solid var(--brand); border-radius: 3pt; padding: 10pt 14pt; margin: 2pt 0 16pt; break-inside: avoid; }
+.callout .t { font-size: 11pt; font-weight: 500; color: var(--near-black); margin-bottom: 3pt; }
+.callout .x { font-size: 9.8pt; color: var(--dark-warm); line-height: 1.6; }
+
+/* ---------- 列表 ---------- */
+ul.dots, ol.nums { margin: 2pt 0 14pt; padding-left: 18pt; }
+ul.dots li, ol.nums li { margin: 0 0 5pt; padding-left: 2pt; }
+ul.dots li::marker { color: var(--brand); }
+ol.nums li::marker { color: var(--brand); font-weight: 500; }
+li .lt { font-weight: 500; color: var(--near-black); }
+li .src { margin-left: 4pt; }
+
+/* ---------- 风险 / 追问 ---------- */
+.flags { margin: 0 0 16pt; border-top: 1pt solid var(--border); }
+.flag { display: grid; grid-template-columns: 42pt 1fr; gap: 10pt; padding: 9pt 0; border-bottom: 0.3pt solid var(--border-soft); break-inside: avoid; }
+.flag .lv { font-size: 8.5pt; font-weight: 500; text-align: center; border-radius: 3pt; padding: 1.5pt 0; height: fit-content; margin-top: 2pt; letter-spacing: 0.6pt; }
+.flag .lv.hi { background: var(--brand); color: var(--ivory); }
+.flag .lv.mid { background: var(--tag-bg); color: var(--brand); }
+.flag .lv.lo { background: var(--sand); color: var(--dark-warm); }
+.flag .ft { font-weight: 500; color: var(--near-black); font-size: 10.5pt; line-height: 1.45; }
+.flag .fx { font-size: 9.6pt; color: var(--dark-warm); line-height: 1.6; margin-top: 2pt; }
+.flag .fq { font-size: 9.4pt; color: var(--brand); line-height: 1.55; margin-top: 3pt; }
+
+/* ---------- 说到做到 ---------- */
+table.cmp td.said { color: var(--olive); font-weight: 400; }
+table.cmp td.v { white-space: nowrap; font-weight: 500; }
+table.cmp td.v.yes { color: var(--brand); }
+table.cmp td.v.part { color: var(--stone); }
+table.cmp td.v.no { color: var(--near-black); }
+
+/* ---------- 明年怎么看 ---------- */
+.verdict { background: var(--ivory); border: 0.5pt solid var(--border); border-left: 2.5pt solid var(--brand); border-radius: 6pt; padding: 12pt 16pt 11pt; margin: 2pt 0 16pt; break-inside: avoid; }
+.verdict .vt { font-size: 9.5pt; color: var(--brand); letter-spacing: 1pt; }
+.verdict .vgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12pt; margin: 6pt 0 8pt; }
+.verdict .vi .vl { font-size: 9pt; color: var(--olive); }
+.verdict .vi .vv { font-size: 24pt; font-weight: 500; line-height: 1.2; color: var(--brand); white-space: nowrap; letter-spacing: -0.2pt; }
+.verdict .vi .vn { font-size: 8.5pt; color: var(--stone); line-height: 1.45; }
+.verdict .vbasis { font-size: 9.4pt; line-height: 1.65; color: var(--dark-warm); border-top: 0.3pt dotted #cfcdc4; padding-top: 7pt; }
+.verdict .vbasis b { color: var(--near-black); }
+
+/* ---------- 一页看懂 ---------- */
+.qa { margin: 0 0 16pt; border-top: 1pt solid var(--border); }
+.qa-row { display: grid; grid-template-columns: 150pt 1fr; gap: 14pt; padding: 10pt 0; border-bottom: 0.3pt solid var(--border-soft); break-inside: avoid; }
+.qa-q { font-size: 11pt; font-weight: 500; color: var(--near-black); line-height: 1.5; display: flex; gap: 7pt; text-align: left; }
+.qa-q .n { color: var(--brand); min-width: 12pt; }
+.qa-a { font-size: 10.2pt; line-height: 1.7; color: var(--near-black); }
+.watch-title { font-size: 9.5pt; color: var(--brand); letter-spacing: 1pt; margin: 4pt 0 6pt; }
+.watch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10pt; margin: 0 0 14pt; break-inside: avoid; }
+.watch .w { background: var(--ivory); border: 0.5pt solid var(--border); border-radius: 8pt; padding: 9pt 12pt; }
+.watch .w .wt { font-size: 10.3pt; font-weight: 500; color: var(--near-black); line-height: 1.45; }
+.watch .w .wx { font-size: 9pt; color: var(--olive); line-height: 1.6; margin-top: 3pt; }
+
+/* ---------- 名词小词典 ---------- */
+.gloss { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 22pt; border-top: 1pt solid var(--border); }
+.gl { padding: 7pt 0; border-bottom: 0.3pt dotted #cfcdc4; break-inside: avoid; }
+.gl .gt { font-weight: 500; color: var(--near-black); font-size: 10pt; }
+.gl .gd { font-size: 9.3pt; color: var(--olive); line-height: 1.6; }
+
+.endnote { font-size: 8.5pt; color: var(--stone); line-height: 1.7; border-top: 0.5pt solid var(--border); padding-top: 8pt; margin-top: 16pt; }
+
+/* ---------- 封面（满版羊皮纸，大字 + 大留白） ---------- */
+.cover { width: 210mm; height: 297mm; padding: 30mm 22mm 20mm; display: flex; flex-direction: column; }
+.cover .kick { font-size: 10pt; color: var(--brand); letter-spacing: 1.2pt; }
+.cover .co { font-size: 40pt; font-weight: 500; line-height: 1.15; color: var(--near-black); margin-top: 18pt; letter-spacing: 1pt; }
+.cover .yr { font-size: 14pt; color: var(--olive); margin-top: 8pt; letter-spacing: 0.4pt; }
+.cover .code { font-size: 10pt; color: var(--stone); margin-top: 3pt; letter-spacing: 0.4pt; }
+.cover .head { font-size: 19pt; line-height: 1.5; font-weight: 500; color: var(--near-black); margin-top: 34mm; padding-left: 12pt; border-left: 2.5pt solid var(--brand); border-radius: 1.5pt; max-width: 150mm; text-align: left; letter-spacing: 0.4pt; }
+.cover .headsub { font-size: 11pt; line-height: 1.7; color: var(--dark-warm); margin-top: 10pt; padding-left: 14.5pt; max-width: 150mm; text-align: left; }
+.cover .ckpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: auto; border-top: 0.3pt dotted #cfcdc4; border-bottom: 0.3pt dotted #cfcdc4; padding: 10pt 0; }
+.cover .ck { padding: 0 10pt 0 12pt; }
+.cover .ck:first-child { padding-left: 0; }
+.cover .ck + .ck { border-left: 0.5pt solid var(--border); }
+.cover .ck .l { font-size: 9pt; color: var(--olive); }
+.cover .ck .v { font-size: 20pt; font-weight: 500; line-height: 1.25; color: var(--brand); white-space: nowrap; letter-spacing: -0.2pt; }
+.cover .ck .v .u { font-size: 9.5pt; font-weight: 400; color: var(--olive); margin-left: 2pt; }
+.cover .ck .d { font-size: 9pt; color: var(--dark-warm); }
+.cover .foot { margin-top: 12pt; font-size: 8.5pt; color: var(--stone); line-height: 1.75; text-align: right; }
+
+/* ---------- 体检表（第二、三讲：排雷、三张表、毛利率和 ROE） ---------- */
+.ckup { margin: 0 0 16pt; }
+.ckup .ck-title { font-size: 10.5pt; font-weight: 500; color: var(--near-black); margin: 0 0 4pt; }
+table.ck td { vertical-align: top; }
+table.ck td.ci { font-weight: 500; color: var(--near-black); }
+table.ck .cv { color: var(--near-black); }
+table.ck .cn { font-size: 8.8pt; color: var(--olive); line-height: 1.5; margin-top: 2pt; }
+table.ck td.cr { font-size: 9pt; color: var(--stone); line-height: 1.5; }
+table.ck tr { break-inside: avoid; }
+table.ck .lv, .ckline .lv { display: inline-block; font-size: 8.5pt; font-weight: 500; text-align: center; border-radius: 3pt; padding: 1.5pt 6pt; letter-spacing: 0.6pt; white-space: nowrap; }
+table.ck .lv.hi, .ckline .lv.hi { background: var(--brand); color: var(--ivory); }
+table.ck .lv.mid, .ckline .lv.mid { background: var(--tag-bg); color: var(--brand); }
+table.ck .lv.lo, .ckline .lv.lo { background: var(--sand); color: var(--dark-warm); }
+
+/* 一页看懂里的体检结论 */
+.ckline { display: flex; align-items: baseline; gap: 8pt; background: var(--ivory); border: 0.5pt solid var(--border); border-radius: 6pt; padding: 8pt 12pt; margin: -6pt 0 14pt; break-inside: avoid; }
+.ckline .ckl { font-size: 9.5pt; color: var(--brand); letter-spacing: 0.8pt; white-space: nowrap; }
+.ckline .ckt { font-size: 9.8pt; color: var(--near-black); line-height: 1.6; }
