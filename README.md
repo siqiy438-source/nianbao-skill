@@ -1,6 +1,6 @@
 # nianbao：用刘总《轻松读年报》的方法精读年报
 
-一个 [Claude Code](https://claude.com/claude-code) Skill。把一家上市公司的**年报或半年报 PDF** 丢给它，它会按刘总《轻松读年报》三讲的方法从头读一遍，交给你一份 16–20 页、不懂会计也看得懂的 PDF 精读报告。
+一个 AI agent Skill，[Claude Code](https://claude.com/claude-code) 和 Codex 都能用。把一家上市公司的**年报或半年报 PDF** 丢给它，它会按刘总《轻松读年报》三讲的方法从头读一遍，交给你一份 16–20 页、不懂会计也看得懂的 PDF 精读报告。
 
 - **第一讲**：先用第二节「主要财务指标」做五分钟的规定动作，再精读第三节「管理层讨论与分析」，回答五个问题，给出明年的业绩区间。
 - **第二讲**：读重要事项（承诺、关联交易、担保）和三张合并报表，第一要义是排雷。
@@ -41,25 +41,25 @@
 
 ## 安装
 
-需要：Claude Code、Python 3。
+**最省事：让你的 AI 帮你装。**把下面这句话发给 Claude Code 或 Codex：
 
-```bash
-git clone https://github.com/siqiy438-source/nianbao-skill.git ~/.claude/skills/nianbao
+```text
+帮我安装这个 skill，按仓库里 INSTALL.md 的步骤做：https://github.com/siqiy438-source/nianbao-skill
 ```
 
-```bash
-pip3 install pymupdf playwright
-```
+**自己装：**在终端运行这一行（Claude Code、Codex 通用，会自动装到你电脑上有的那个）：
 
 ```bash
-python3 -m playwright install chromium
+rm -rf /tmp/nianbao-skill && git clone --depth 1 https://github.com/siqiy438-source/nianbao-skill.git /tmp/nianbao-skill && bash /tmp/nianbao-skill/install.sh
 ```
+
+需要 git 和 Python 3（macOS 上没有的话先运行 `xcode-select --install`）。Python 依赖会装进单独的环境 `~/.nianbao/venv`，不动系统的 Python。详细步骤、手动安装、更新和卸载见 [INSTALL.md](INSTALL.md)。
 
 **字体（可选）**：版式按 kami（紙）的风格设计，正文字体是仓耳今楷。因为字体有授权限制，仓库里不带字体文件。没有这个字体时会自动换成思源宋体或系统宋体，报告照样能出，只是字体效果不同。如果你装了 [kami](https://github.com/tw93/kami) skill 并下载了它的字体，nianbao 会自动用上；也可以把 `TsangerJinKai02-W04.ttf`、`TsangerJinKai02-W05.ttf` 放进 `assets/fonts/`。
 
 ## 用法
 
-在 Claude Code 里输入 `/nianbao`，再把年报 PDF 拖进来；也可以直接说「帮我读一下这份年报」「这家公司有没有雷」。
+装好后新开一个对话。Claude Code 里输入 `/nianbao`，再把年报 PDF 拖进来；Codex 里说「用 nianbao 读这份年报」，再给出 PDF 的路径。也可以直接说「帮我读一下这份年报」「这家公司有没有雷」。
 
 年报全文去 [巨潮资讯网](https://www.cninfo.com.cn) 下载，要全文版，不要摘要版。
 
@@ -83,6 +83,9 @@ python3 -m playwright install chromium
 | `scripts/extract.py` | 找第二节、第三节、重要事项、股东情况、财务报告，按页导出文字并标页码 |
 | `scripts/check.py` | 交付前自检：结构、数字出处、名词解释、措辞、体检表 |
 | `scripts/build.py` | 把 report.json 排成 PDF，并出每页的预览图 |
+| `scripts/pages.py` | 把 PDF 的几页转成图片，给不能直接读 PDF 的 agent 核对用 |
+| `run.sh` | 统一入口，自动挑 Python |
+| `install.sh` `INSTALL.md` | 一键安装、更新，和给 agent 看的安装说明 |
 | `references/刘总读法.md` | 三讲的方法论 |
 | `references/报告格式.md` `references/写作规则.md` `references/名词解释.md` | 报告怎么写 |
 | `references/示例-*.json` | 写好的范例（美的 2024 年报、星宇 2026 半年报、中际联合对答案） |
