@@ -72,7 +72,7 @@ rm -rf /tmp/nianbao-skill && git clone --depth 1 https://github.com/siqiy438-sou
 └── 工作文件/2026半年报/                ← 导出的原文、report.json、预览图
 ```
 
-想看 ROE、毛利率的 5 年走势，就把往年的年报也放进这个文件夹，再跑一次。
+ROE、毛利率报告里有几年就看几年；文件夹里本来就有往年年报的，会顺手多看几年。
 
 ## 文件
 

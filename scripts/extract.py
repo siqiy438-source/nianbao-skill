@@ -238,19 +238,41 @@ def parse_range(r):
 CN_DIGIT = {"〇": 0, "零": 0, "○": 0, "一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
 
 
+# 报告名：「2026 年半年度报告」「2025年年度报告」「2026年第三季度报告」「2026 中期報告」
+REPORT_KINDS = [
+    ("半年报", "半年度报告|半年度報告|半年报|半年報|中期报告|中期報告"),
+    ("季报", "第[一三]季度报告|第[一三]季度報告|[一三]季度报告|[一三]季度報告"),
+    ("年报", "年度报告|年度報告|年報|年报"),
+]
+
+
+def guess_report(doc):
+    """认出这是哪一年的年报 / 半年报 / 季报，返回 (年份, 类型)，认不出返回 (None, None)。
+
+    不能取第一个出现的「20XX 年报」：半年报开头常写「具体可参见 2025 年年报」，
+    会把 2026 年半年报认成 2025 年。做法是数前 12 页里每个「年份 + 报告名」出现几次
+    （每页页眉都印着这份报告自己的标题，封面多算几票），取票最多的；
+    一样多就取更晚的年份，因为报告只会引用以前的报告。"""
+    votes = Counter()
+    for i in range(min(12, doc.page_count)):
+        flat = squash(doc[i].get_text())
+        w = 5 if i == 0 else 1
+        for kind, alt in REPORT_KINDS:
+            for m in re.finditer(rf"(20\d{{2}})年?(?:{alt})", flat):
+                votes[(int(m.group(1)), kind)] += w
+            for m in re.finditer(rf"([二〇零○][〇零○一二三四五六七八九]{{3}})年(?:{alt})", flat):
+                votes[(int("".join(str(CN_DIGIT[c]) for c in m.group(1))), kind)] += w
+        for m in re.finditer(r"(?:年度报告|年度報告|年報|年报)(20\d{2})", flat):
+            votes[(int(m.group(1)), "年报")] += w
+    if not votes:
+        return None, None
+    return max(votes, key=lambda k: (votes[k], k[0]))
+
+
 def guess_company_year(doc):
     text = "".join(doc[i].get_text() for i in range(min(12, doc.page_count)))
     flat = squash(text)
-    year = None
-    for pat in (r"(20\d{2})年?(?:年度报告|年度報告|年報|年报)", r"(?:年度报告|年度報告|年報|年报)(20\d{2})"):
-        m = re.search(pat, flat)
-        if m:
-            year = int(m.group(1))
-            break
-    if not year:
-        m = re.search(r"([二〇零○][〇零○一二三四五六七八九]{3})年(?:年度报告|年度報告)", flat)
-        if m:
-            year = int("".join(str(CN_DIGIT[c]) for c in m.group(1)))
+    year, _ = guess_report(doc)
     name = None
     m = re.search(r"([\u4e00-\u9fa5（）()A-Za-z]{2,30}?(股份有限公司|集團有限公司|集团有限公司|控股有限公司|有限公司))", flat)
     if m:
@@ -309,6 +331,7 @@ def main():
     doc = fitz.open(pdf)
     offset = page_offset(doc)
     name, year, short, code = guess_company_year(doc)
+    _, kind = guess_report(doc)
 
     found = {}
     for key, names, flag in (("s2", S2_NAMES, "--s2"), ("s3", S3_NAMES, "--s3")):
@@ -327,13 +350,13 @@ def main():
         "pdf": str(pdf.resolve()),
         "total_pages": doc.page_count,
         "company_guess": name, "short_name_guess": short, "stock_code_guess": code,
-        "year_guess": year,
+        "year_guess": year, "kind_guess": kind,
         "page_offset": offset,
         "page_note": ("页脚页码 = PDF页码 - %d" % offset) if offset is not None else "没识别出页脚页码，引用时用 PDF 页码",
     }
 
     print(f"年报：{pdf.name}（共 {doc.page_count} 页）")
-    print(f"猜测：{name or '?'}｜简称 {short or '?'}｜代码 {code or '?'}｜{year or '?'} 年")
+    print(f"猜测：{name or '?'}｜简称 {short or '?'}｜代码 {code or '?'}｜{year or '?'} 年{kind or ''}")
     print("页码：" + meta["page_note"])
 
     ok = True
