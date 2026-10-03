@@ -21,7 +21,10 @@ import shutil
 import sys
 from pathlib import Path
 
-import fitz
+try:  # PyMuPDF：新版叫 pymupdf，旧版叫 fitz
+    import pymupdf as fitz
+except ImportError:
+    import fitz
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from extract import guess_company_year  # noqa: E402

@@ -25,7 +25,10 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-import fitz  # PyMuPDF
+try:  # PyMuPDF：新版叫 pymupdf，旧版叫 fitz
+    import pymupdf as fitz
+except ImportError:
+    import fitz
 
 CN_NUM = "一二三四五六七八九十"
 

@@ -46,8 +46,13 @@ say "→ 准备 Python 环境 $VENV（第一次要下载几分钟）"
 say "→ 试排一份范例报告"
 first="${targets[0]}"
 tmp="$(mktemp -d)"
-bash "$first/run.sh" build "$first/references/示例-美的2024.json" "$tmp/nianbao测试.pdf" | head -1
+out="$(bash "$first/run.sh" build "$first/references/示例-美的2024.json" "$tmp/nianbao测试.pdf" 2>&1 || true)"
 rm -rf "$tmp"
+if printf '%s' "$out" | grep -q "✓ 已生成"; then
+  say "  ✓ 范例报告排出来了"
+else
+  say "✗ 范例报告没排出来，下面是报错："; printf '%s\n' "$out" | tail -20; exit 1
+fi
 
 say ""
 say "✓ 装好了：${targets[*]}"

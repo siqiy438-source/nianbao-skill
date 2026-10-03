@@ -17,7 +17,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-import fitz  # PyMuPDF
+try:  # PyMuPDF：新版叫 pymupdf，旧版叫 fitz
+    import pymupdf as fitz
+except ImportError:
+    import fitz
 
 SKILL = Path(__file__).resolve().parent.parent
 ASSETS = SKILL / "assets"
